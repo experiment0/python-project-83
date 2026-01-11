@@ -3,6 +3,7 @@
 ## Статусы
 
 [![Actions Status](https://github.com/experiment0/python-project-83/actions/workflows/hexlet-check.yml/badge.svg)](https://github.com/experiment0/python-project-83/actions)
+[![Python CI](https://github.com/experiment0/python-project-83/actions/workflows/python-ci.yml/badge.svg)](https://github.com/experiment0/python-project-83/actions/workflows/python-ci.yml)
 
 ## О проекте
 
