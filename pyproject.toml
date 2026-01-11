@@ -1,0 +1,25 @@
+[project]
+name = "hexlet-code"
+version = "0.1.0"
+description = "Page analyzer"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "flask>=3.1.2",
+    "gunicorn>=23.0.0",
+    "python-dotenv>=1.2.1",
+]
+
+# Система сборки пакета
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# По какому пути брать файлы для пакета
+[tool.hatch.build.targets.wheel]
+packages = ["page_analyzer"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.11",
+]
