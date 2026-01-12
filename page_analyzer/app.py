@@ -1,7 +1,7 @@
 import os
 
 from dotenv import load_dotenv
-from flask import Flask
+from flask import Flask, render_template
 
 # Загружает переменные окружения из файла .env
 load_dotenv()
@@ -13,5 +13,5 @@ app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 
 
 @app.route("/")
-def run():
-    return "Page analyzer"
+def home():
+    return render_template("home.html")

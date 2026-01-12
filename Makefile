@@ -3,9 +3,6 @@ install:
 	uv sync
 
 
-
-
-
 # Проверяет код в папке page_analyzer на соответствие правилам линтера из ruff.toml
 lint:
 	uv run ruff check page_analyzer
