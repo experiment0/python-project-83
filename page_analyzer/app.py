@@ -17,6 +17,7 @@ from pydantic_core._pydantic_core import (
     ValidationError as PydanticValidationError,
 )
 
+from page_analyzer.ConnectionPool import ConnectionPool
 from page_analyzer.models import NewUrlData, UrlsModel
 
 # Загружает переменные окружения из файла .env
@@ -30,7 +31,8 @@ app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 # Урл базы данных
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-urls_model = UrlsModel(DATABASE_URL)
+connection_pool = ConnectionPool(DATABASE_URL)
+urls_model = UrlsModel(connection_pool)
 
 
 class MessageCategory(Enum):
