@@ -1,0 +1,57 @@
+{% extends "main_layout.html" %}
+
+{% block content %}
+<h1>Сайт: {{ url_data.name }}</h1>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-hover text-nowrap" data-test="url">
+        <tbody>
+            <tr>
+                <td>ID</td>
+                <td>{{ url_data.id }}</td>
+            </tr>
+            <tr>
+                <td>Имя</td>
+                <td>{{ url_data.name }}</td>
+            </tr>
+            <tr>
+                <td>Дата создания</td>
+                <td>{{ url_data.date }}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<h2 class="mt-5 mb-3">Проверки</h2>
+
+<!-- TODO - передать урл через url_for -->
+<form method="post" action="/urls/{{ url_data.id }}/checks">
+    <input type="submit" class="btn btn-primary" value="Запустить проверку">
+</form>
+
+<div>
+    <table class="table table-bordered table-hover mt-2" data-test="checks">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Код ответа</th>
+                <th>h1</th>
+                <th>title</th>
+                <th>description</th>
+                <th>Дата создания</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- TODO - сделать вывод строк в цикле 
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr> -->
+        </tbody>
+    </table>
+</div>      
+{% endblock %}

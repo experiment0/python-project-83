@@ -1,6 +1,7 @@
 .venv
 .env
 __pycache__
+*_cache
 
 TODO.md
 temp
