@@ -1,8 +1,8 @@
 from datetime import datetime
 from typing import Optional
 
-from psycopg2.extensions import connection
 from psycopg2.extras import RealDictCursor
+from psycopg2.pool import SimpleConnectionPool
 from pydantic import (
     AnyUrl,
     BaseModel,
@@ -46,22 +46,29 @@ class ExistingUrlData(NewUrlData):
 
 
 class UrlsModel:
-    def __init__(self, conn: connection) -> None:
-        self.conn = conn
+    def __init__(self, connection_pool: SimpleConnectionPool) -> None:
+        self.connection_pool = connection_pool
     
     def get_all(self) -> list[ExistingUrlData]:
-        with self.conn.cursor(cursor_factory=RealDictCursor) as cursor:
-            cursor.execute(
-                f"SELECT * FROM {URLS_TABLE_NAME} ORDER BY created_at DESC"
-            )
-
-            return [ExistingUrlData(**dict(item)) for item in cursor.fetchall()]
+        conn = self.connection_pool.getconn()
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(
+                    f"SELECT * FROM {URLS_TABLE_NAME} ORDER BY created_at DESC"
+                )
+                return [
+                    ExistingUrlData(**dict(item)) for item in cursor.fetchall()
+                ]
+        finally:
+            self.connection_pool.putconn(conn)
     
     def save(self, url_data: NewUrlData) -> int:
+        conn = self.connection_pool.getconn()
         url_name = url_data.name.encoded_string()
+        is_error = False
         
         try:
-            with self.conn.cursor() as cursor:
+            with conn.cursor() as cursor:
                 cursor.execute(
                     f"""INSERT INTO {URLS_TABLE_NAME} (name) 
                     VALUES (%s) 
@@ -70,35 +77,48 @@ class UrlsModel:
                 )
                 url_id = cursor.fetchone()[0]
         except Exception:
-            self.conn.rollback()
+            conn.rollback()
+            is_error = True
             raise
-            
-        self.conn.commit()
+        finally:
+            if not is_error:
+                conn.commit()
+            self.connection_pool.putconn(conn)
         
         return url_id
     
     def find_by_id(self, id: int) -> Optional[ExistingUrlData]:
-        with self.conn.cursor(cursor_factory=RealDictCursor) as cursor:
-            cursor.execute(
-                f"SELECT * FROM {URLS_TABLE_NAME} WHERE id = %s", 
-                (id,)
-            )
-            url_data = cursor.fetchone()
+        conn = self.connection_pool.getconn()
+        
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(
+                    f"SELECT * FROM {URLS_TABLE_NAME} WHERE id = %s", 
+                    (id,)
+                )
+                url_data = cursor.fetchone()
 
-            if url_data is None:
-                return None
-            
-            return ExistingUrlData(**dict(url_data))
+                if url_data is None:
+                    return None
+                
+                return ExistingUrlData(**dict(url_data))
+        finally:
+            self.connection_pool.putconn(conn)
     
     def find_by_url(self, url_name: str) -> Optional[ExistingUrlData]:
-        with self.conn.cursor(cursor_factory=RealDictCursor) as cursor:
-            cursor.execute(
-                f"SELECT * FROM {URLS_TABLE_NAME} WHERE name = %s",
-                (url_name,)
-            )
-            url_data = cursor.fetchone()
+        conn = self.connection_pool.getconn()
+        
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(
+                    f"SELECT * FROM {URLS_TABLE_NAME} WHERE name = %s",
+                    (url_name,)
+                )
+                url_data = cursor.fetchone()
 
-            if url_data is None:
-                return None
-            
-            return ExistingUrlData(**dict(url_data))
+                if url_data is None:
+                    return None
+                
+                return ExistingUrlData(**dict(url_data))
+        finally:
+            self.connection_pool.putconn(conn)

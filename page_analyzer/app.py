@@ -1,7 +1,6 @@
 import os
 from enum import Enum
 
-import psycopg2
 from dotenv import load_dotenv
 from flask import (
     Flask,
@@ -13,6 +12,7 @@ from flask import (
     request,
     url_for,
 )
+from psycopg2 import pool
 from psycopg2.errors import UniqueViolation
 from pydantic_core._pydantic_core import (
     ValidationError as PydanticValidationError,
@@ -32,9 +32,11 @@ app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 # Соединение с базой данных
-conn = psycopg2.connect(DATABASE_URL)
+connection_pool = pool.SimpleConnectionPool(
+    1, 10, DATABASE_URL
+)
 
-urls_model = UrlsModel(conn)
+urls_model = UrlsModel(connection_pool)
 
 
 class MessageCategory(Enum):
