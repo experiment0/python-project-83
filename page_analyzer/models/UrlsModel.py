@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
+from psycopg2 import pool
 from psycopg2.extras import RealDictCursor
 from psycopg2.pool import SimpleConnectionPool
 from pydantic import (
@@ -46,11 +47,21 @@ class ExistingUrlData(NewUrlData):
 
 
 class UrlsModel:
-    def __init__(self, connection_pool: SimpleConnectionPool) -> None:
-        self.connection_pool = connection_pool
+    def __init__(self, DATABASE_URL: str) -> None:
+        self.DATABASE_URL = DATABASE_URL
+        self.connection_pool = self.__get_connection_pool()
+    
+    def __get_connection_pool(self) -> SimpleConnectionPool:
+        return pool.SimpleConnectionPool(1, 10, self.DATABASE_URL)
+    
+    def __check_connection_pool(self) -> None:
+        if self.connection_pool.closed:
+            self.connection_pool = self.__get_connection_pool()
     
     def get_all(self) -> list[ExistingUrlData]:
+        self.__check_connection_pool()
         conn = self.connection_pool.getconn()
+        
         try:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute(
@@ -63,7 +74,9 @@ class UrlsModel:
             self.connection_pool.putconn(conn)
     
     def save(self, url_data: NewUrlData) -> int:
+        self.__check_connection_pool()
         conn = self.connection_pool.getconn()
+        
         url_name = url_data.name.encoded_string()
         is_error = False
         
@@ -88,6 +101,7 @@ class UrlsModel:
         return url_id
     
     def find_by_id(self, id: int) -> Optional[ExistingUrlData]:
+        self.__check_connection_pool()
         conn = self.connection_pool.getconn()
         
         try:
@@ -106,6 +120,7 @@ class UrlsModel:
             self.connection_pool.putconn(conn)
     
     def find_by_url(self, url_name: str) -> Optional[ExistingUrlData]:
+        self.__check_connection_pool()
         conn = self.connection_pool.getconn()
         
         try:

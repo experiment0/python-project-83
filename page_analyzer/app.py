@@ -12,7 +12,6 @@ from flask import (
     request,
     url_for,
 )
-from psycopg2 import pool
 from psycopg2.errors import UniqueViolation
 from pydantic_core._pydantic_core import (
     ValidationError as PydanticValidationError,
@@ -31,12 +30,7 @@ app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 # Урл базы данных
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Соединение с базой данных
-connection_pool = pool.SimpleConnectionPool(
-    1, 10, DATABASE_URL
-)
-
-urls_model = UrlsModel(connection_pool)
+urls_model = UrlsModel(DATABASE_URL)
 
 
 class MessageCategory(Enum):
