@@ -1,4 +1,5 @@
 DROP TABLE IF EXISTS urls;
+DROP TABLE IF EXISTS url_checks;
 
 CREATE TABLE urls (
     id SERIAL PRIMARY KEY,
@@ -7,4 +8,15 @@ CREATE TABLE urls (
     -- PostgreSQL автоматически создает индекс для каждого уникального ограничения и ограничения первичного ключа для обеспечения уникальности.
     name VARCHAR(255) UNIQUE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE url_checks (
+    id SERIAL PRIMARY KEY, 
+    url_id INTEGER NOT NULL, 
+    status_code SMALLINT NOT NULL, 
+    h1 VARCHAR(255), 
+    title VARCHAR(255), 
+    description VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (url_id) REFERENCES urls (id)
 );

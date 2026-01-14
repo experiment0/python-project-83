@@ -15,8 +15,7 @@ from typing_extensions import Annotated
 from page_analyzer.ConnectionPool import ConnectionPool
 from page_analyzer.utils.helpers import get_root_url
 
-URLS_TABLE_NAME = "urls"
-
+# Правила, которым должен соответствовать url, добавляемый в модель
 UrlType = Annotated[
     AnyUrl, 
     UrlConstraints(
@@ -28,18 +27,22 @@ UrlType = Annotated[
 ]
 
 
+# Тип для новых данных, которые мы добавляем из формы
 class NewUrlData(BaseModel):
     name: UrlType = Field(description="url корня сайта")
     
+    # Перед добавлением в модель оставим от url только путь до корня сайта
     @field_validator("name", mode="before")
     def validate_name(cls, value):
         return get_root_url(value)
 
 
+# Тип для существующих данных, которые мы получаем из таблицы
 class ExistingUrlData(NewUrlData):
     id: int = Field(description="Уникальный идентификатор записи")    
     created_at: datetime = Field(description="Дата и время создания записи")
     
+    # Создадим дополнительное поле для отображения даты события в интерфейсе
     @computed_field
     def date(self) -> str:
         return self.created_at.strftime("%Y-%m-%d")
@@ -48,21 +51,6 @@ class ExistingUrlData(NewUrlData):
 class UrlsModel:
     def __init__(self, connection_pool: ConnectionPool) -> None:
         self.connection_pool = connection_pool
-    
-   
-    def get_all(self) -> list[ExistingUrlData]:
-        conn = self.connection_pool.get_conn()
-        
-        try:
-            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-                cursor.execute(
-                    f"SELECT * FROM {URLS_TABLE_NAME} ORDER BY created_at DESC"
-                )
-                return [
-                    ExistingUrlData(**dict(item)) for item in cursor.fetchall()
-                ]
-        finally:
-            self.connection_pool.put_conn(conn)
     
     def save(self, url_data: NewUrlData) -> int:
         conn = self.connection_pool.get_conn()
@@ -73,9 +61,7 @@ class UrlsModel:
         try:
             with conn.cursor() as cursor:
                 cursor.execute(
-                    f"""INSERT INTO {URLS_TABLE_NAME} (name) 
-                    VALUES (%s) 
-                    RETURNING id""",
+                    "INSERT INTO urls (name) VALUES (%s) RETURNING id",
                     (url_name,)
                 )
                 url_id = cursor.fetchone()[0]
@@ -96,7 +82,7 @@ class UrlsModel:
         try:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute(
-                    f"SELECT * FROM {URLS_TABLE_NAME} WHERE id = %s", 
+                    "SELECT * FROM urls WHERE id = %s", 
                     (id,)
                 )
                 url_data = cursor.fetchone()
@@ -114,7 +100,7 @@ class UrlsModel:
         try:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute(
-                    f"SELECT * FROM {URLS_TABLE_NAME} WHERE name = %s",
+                    "SELECT * FROM urls WHERE name = %s",
                     (url_name,)
                 )
                 url_data = cursor.fetchone()

@@ -1,6 +1,6 @@
-from psycopg2.pool import SimpleConnectionPool
 from psycopg2 import pool
 from psycopg2.extensions import connection
+from psycopg2.pool import SimpleConnectionPool
 
 
 class ConnectionPool:
@@ -12,6 +12,11 @@ class ConnectionPool:
         return pool.SimpleConnectionPool(1, 10, self.DATABASE_URL)
     
     def __check_connection_pool(self):
+        # На платформе render.com, где деплоится данный проект,
+        # в бесплатном варианте очень неустойчивое соединение с БД,
+        # которое закрывается после каждого запроса.
+        # Поэтому здесь добавлено пересоздание пула соединений в случае,
+        # если оно закрыто.
         if self.connection_pool.closed:
             self.connection_pool = self.__get_connection_pool()
     

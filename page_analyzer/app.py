@@ -18,7 +18,13 @@ from pydantic_core._pydantic_core import (
 )
 
 from page_analyzer.ConnectionPool import ConnectionPool
-from page_analyzer.models import NewUrlData, UrlsModel
+from page_analyzer.models import (
+    MixedModel,
+    NewUrlCheckData,
+    NewUrlData,
+    UrlChecksModel,
+    UrlsModel,
+)
 
 # Загружает переменные окружения из файла .env
 load_dotenv()
@@ -27,14 +33,21 @@ app = Flask(__name__)
 
 # Ключ для подписи форм
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
-
 # Урл базы данных
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+# Объект для организации пула соединений с БД
 connection_pool = ConnectionPool(DATABASE_URL)
+# Объект для взаимодействия с таблицей urls
 urls_model = UrlsModel(connection_pool)
+# Объект для взаимодействия с таблицей url_checks
+url_checks_model = UrlChecksModel(connection_pool)
+# Объект для получения результатов запросов, которые объединяют обе таблицы
+mixed_model = MixedModel(connection_pool)
 
 
+# Категории flash-сообщений. 
+# Тип соответствует имени класса сообщения в bootstrap
 class MessageCategory(Enum):
     SUCCESS = "success"
     DANGER = "danger"
@@ -48,11 +61,11 @@ def index():
 
 @app.route("/urls")
 def urls_get():
-    urls = urls_model.get_all()
+    last_url_checks = mixed_model.get_last_url_checks()
     
     return render_template(
         "urls/index.html",
-        urls=urls,
+        last_url_checks=last_url_checks,
     )
 
 
@@ -98,14 +111,42 @@ def urls_show(id):
     
     if url_data is None:
         abort(404)
+    
+    url_checks_data = url_checks_model.get_all_checks_for_url(url_data.id)
         
     messages = get_flashed_messages(with_categories=True)
     
     return render_template(
         "urls/show.html",
         url_data=url_data,
+        url_checks_data=url_checks_data,
         messages=messages,
     )
+
+
+@app.post("/urls/<id>/checks")
+def urls_checks_post(id):
+    url_data = urls_model.find_by_id(id)
+    
+    if url_data is None:
+        return render_template("error.html"), 422
+    
+    # TODO тут нужно с помощью парсинга узнать данные страницы url_data.name
+    # и в случае успеха вывести 
+    # (MessageCategory.SUCCESS.value, Страница успешно проверена)
+    # в случае неудачи - посмотреть, когда демо сайт отвиснет
+    # Функцию парсинга наверное вынести в helpers
+    
+    url_check_data = NewUrlCheckData(
+        url_id=id,
+        status_code=200,  # TODO - статус надо узнать путем запроса
+        h1=None,
+        title=None,
+        description=None,
+    )
+    url_checks_model.save(url_check_data)    
+    
+    return redirect(url_for("urls_show", id=id))
 
 
 @app.errorhandler(404)

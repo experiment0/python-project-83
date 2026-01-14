@@ -24,8 +24,7 @@
 
 <h2 class="mt-5 mb-3">Проверки</h2>
 
-<!-- TODO - передать урл через url_for -->
-<form method="post" action="/urls/{{ url_data.id }}/checks">
+<form method="post" action="{{ url_for('urls_checks_post', id=url_data.id) }}">
     <input type="submit" class="btn btn-primary" value="Запустить проверку">
 </form>
 
@@ -42,15 +41,16 @@
             </tr>
         </thead>
         <tbody>
-            <!-- TODO - сделать вывод строк в цикле 
-            <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr> -->
+            {% for check_data in url_checks_data %}
+                <tr>
+                    <td>{{ check_data.id }}</td>
+                    <td>{{ check_data.status_code }}</td>
+                    <td>{{ check_data.h1 }}</td>
+                    <td>{{ check_data.title }}</td>
+                    <td>{{ check_data.description }}</td>
+                    <td>{{ check_data.date }}</td>
+                </tr>
+            {% endfor %}
         </tbody>
     </table>
 </div>      

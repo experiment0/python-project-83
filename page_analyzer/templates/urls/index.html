@@ -14,14 +14,14 @@
             </tr>
         </thead>
         <tbody>
-            {% for url in urls %}
+            {% for check in last_url_checks %}
                 <tr>
-                    <td>{{ url.id }}</td>
+                    <td>{{ check.url_id }}</td>
                     <td>
-                        <a href="{{ url_for('urls_show', id=url.id) }}">{{ url.name }}</a>
+                        <a href="{{ url_for('urls_show', id=check.url_id) }}">{{ check.name }}</a>
                     </td>
-                    <td></td>
-                    <td></td>
+                    <td>{{ check.date }}</td>
+                    <td>{{ check.status }}</td>
                 </tr>
             {% endfor %}
         </tbody>
