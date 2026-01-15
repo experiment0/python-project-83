@@ -1,8 +1,8 @@
 from typing import Optional
-from pydantic import BaseModel, Field
 from urllib.parse import urlparse, urlunparse
-from bs4 import BeautifulSoup
 
+from bs4 import BeautifulSoup
+from pydantic import BaseModel, Field
 
 MAX_TEXT_LENGTH = 255
 
@@ -46,6 +46,7 @@ class PageSeoInfo(BaseModel):
     title: Optional[str] = Field(default=None)
     description: Optional[str] = Field(default=None)
     
+
 def get_page_seo_info(page_html: str) -> PageSeoInfo:
     """Возвращает данные из значимых seo-тегов страницы
 

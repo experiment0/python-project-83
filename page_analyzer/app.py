@@ -1,6 +1,7 @@
 import os
 from enum import Enum
 
+import requests
 from dotenv import load_dotenv
 from flask import (
     Flask,
@@ -12,7 +13,6 @@ from flask import (
     request,
     url_for,
 )
-import requests
 from psycopg2.errors import UniqueViolation
 from pydantic_core._pydantic_core import (
     ValidationError as PydanticValidationError,
@@ -27,7 +27,6 @@ from page_analyzer.models import (
     UrlsModel,
 )
 from page_analyzer.utils.helpers import get_page_seo_info
-
 
 # Загружает переменные окружения из файла .env
 load_dotenv()
@@ -151,14 +150,15 @@ def urls_checks_post(id):
         
         return redirect(url_for("urls_show", id=id))
 
-    except requests.exceptions.Timeout as error:
+    except requests.exceptions.Timeout:
         flash("Произошла ошибка при проверке", MessageCategory.DANGER.value)
         
         return redirect(url_for("urls_show", id=id))
 
     except requests.exceptions.RequestException as error:
         error_first_word = str(error).split()[0]
-        response_status = error_first_word if error_first_word.isdigit() else None
+        response_status = \
+            error_first_word if error_first_word.isdigit() else None
         
         return render_template(
             "error.html",
