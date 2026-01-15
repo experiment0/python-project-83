@@ -38,14 +38,15 @@ app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 # Урл базы данных
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Объект для организации пула соединений с БД
-connection_pool = ConnectionPool(DATABASE_URL)
-# Объект для взаимодействия с таблицей urls
-urls_model = UrlsModel(connection_pool)
-# Объект для взаимодействия с таблицей url_checks
-url_checks_model = UrlChecksModel(connection_pool)
-# Объект для получения результатов запросов, которые объединяют обе таблицы
-mixed_model = MixedModel(connection_pool)
+if DATABASE_URL is not None:
+    # Объект для организации пула соединений с БД
+    connection_pool = ConnectionPool(DATABASE_URL)
+    # Объект для взаимодействия с таблицей urls
+    urls_model = UrlsModel(connection_pool)
+    # Объект для взаимодействия с таблицей url_checks
+    url_checks_model = UrlChecksModel(connection_pool)
+    # Объект для получения результатов запросов, которые объединяют обе таблицы
+    mixed_model = MixedModel(connection_pool)
 
 
 # Категории flash-сообщений. 
@@ -153,7 +154,12 @@ def urls_checks_post(id):
         
         return redirect(url_for("urls_show", id=id))
 
-    except requests.exceptions.RequestException as error:
+    except requests.exceptions.RequestException:        
+        flash("Произошла ошибка при проверке", MessageCategory.DANGER.value)
+        
+        return redirect(url_for("urls_show", id=id))
+    
+    except Exception as error:
         error_first_word = str(error).split()[0]
         response_status = \
             error_first_word if error_first_word.isdigit() else None
@@ -162,11 +168,6 @@ def urls_checks_post(id):
             ERROR_TEMPLATE,
             response_status=response_status,
         )
-    
-    except Exception:
-        flash("Произошла ошибка при проверке", MessageCategory.DANGER.value)
-        
-        return redirect(url_for("urls_show", id=id))
 
 
 @app.errorhandler(404)
