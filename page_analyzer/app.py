@@ -54,7 +54,10 @@ class MessageCategory(Enum):
     SUCCESS = "success"
     DANGER = "danger"
     INFO = "info"
-    
+
+
+ERROR_TEMPLATE = "error.html"
+
 
 @app.route("/")
 def index():
@@ -104,7 +107,7 @@ def urls_post():
     except Exception as error:
         app.logger.error(f"Ошибка при добавлении url '{url}': {error}")
         
-        return render_template("error.html"), 422
+        return render_template(ERROR_TEMPLATE), 422
 
 
 @app.route("/urls/<id>")
@@ -131,7 +134,7 @@ def urls_checks_post(id):
     url_data = urls_model.find_by_id(id)
     
     if url_data is None:
-        return render_template("error.html"), 422
+        return render_template(ERROR_TEMPLATE), 422
     
     try:
         response = requests.get(url_data.name_str)
@@ -150,22 +153,26 @@ def urls_checks_post(id):
         
         return redirect(url_for("urls_show", id=id))
 
-    except requests.exceptions.Timeout:
-        flash("Произошла ошибка при проверке", MessageCategory.DANGER.value)
-        
-        return redirect(url_for("urls_show", id=id))
-
     except requests.exceptions.RequestException as error:
         error_first_word = str(error).split()[0]
         response_status = \
             error_first_word if error_first_word.isdigit() else None
         
         return render_template(
-            "error.html",
+            ERROR_TEMPLATE,
             response_status=response_status,
         )
+    
+    except Exception:
+        flash("Произошла ошибка при проверке", MessageCategory.DANGER.value)
+        
+        return redirect(url_for("urls_show", id=id))
 
 
 @app.errorhandler(404)
 def not_found(error):
     return render_template("404.html"), 404
+
+
+if __name__ == "__main__":
+    app.run()

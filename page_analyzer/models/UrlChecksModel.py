@@ -100,7 +100,6 @@ class UrlChecksModel:
         except Exception:
             conn.rollback()
             is_error = True
-            # TODO - надо будет ошибку наверно обработать
             raise
         finally:
             if not is_error:

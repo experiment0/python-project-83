@@ -4,12 +4,12 @@ from psycopg2.pool import SimpleConnectionPool
 
 
 class ConnectionPool:
-    def __init__(self, DATABASE_URL: str) -> None:
-        self.DATABASE_URL = DATABASE_URL
+    def __init__(self, database_url: str) -> None:
+        self.database_url = database_url
         self.connection_pool = self.__get_connection_pool()
     
     def __get_connection_pool(self) -> SimpleConnectionPool:
-        return pool.SimpleConnectionPool(1, 10, self.DATABASE_URL)
+        return pool.SimpleConnectionPool(1, 10, self.database_url)
     
     def __check_connection_pool(self):
         # На платформе render.com, где деплоится данный проект,
