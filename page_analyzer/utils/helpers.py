@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Self
 from urllib.parse import urlparse, urlunparse
 
 from bs4 import BeautifulSoup
@@ -46,6 +46,14 @@ class PageSeoInfo(BaseModel):
     title: Optional[str] = Field(default=None)
     description: Optional[str] = Field(default=None)
     
+    def __eq__(self, other: Self) -> bool:
+        return (self.h1 is other.h1 or self.h1 == other.h1) and \
+            (self.title is other.title or self.title == other.title) and \
+            (
+                self.description is other.description or 
+                self.description == other.description
+            )
+
 
 def get_page_seo_info(page_html: str) -> PageSeoInfo:
     """Возвращает данные из значимых seo-тегов страницы

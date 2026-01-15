@@ -14,13 +14,16 @@ fix:
 
 
 # Прогоняет все тесты
-# test:
-# 	uv run pytest
+test:
+	uv run pytest
 
+# Проверяет покрытие кода тестами и формирует отчет в файле coverage.xml
+# Далее этот файл использует SonarCloud для анализа
+test-coverage:
+	uv run pytest --cov=page_analyzer --cov-report xml
 
 # Прогоняет сначала тесты, потом проверку линтером
-# check: test lint
-check: lint
+check: test lint
 
 
 # Запускает скрипт для установки uv и зависимостей проекта для платформы render.com
