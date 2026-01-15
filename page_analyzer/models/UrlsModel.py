@@ -35,6 +35,10 @@ class NewUrlData(BaseModel):
     @field_validator("name", mode="before")
     def validate_name(cls, value):
         return get_root_url(value)
+    
+    @computed_field
+    def name_str(self) -> str:
+        return self.name.encoded_string()
 
 
 # Тип для существующих данных, которые мы получаем из таблицы
@@ -54,15 +58,13 @@ class UrlsModel:
     
     def save(self, url_data: NewUrlData) -> int:
         conn = self.connection_pool.get_conn()
-        
-        url_name = url_data.name.encoded_string()
         is_error = False
         
         try:
             with conn.cursor() as cursor:
                 cursor.execute(
                     "INSERT INTO urls (name) VALUES (%s) RETURNING id",
-                    (url_name,)
+                    (url_data.name_str,)
                 )
                 url_id = cursor.fetchone()[0]
         except Exception:

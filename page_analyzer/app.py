@@ -12,6 +12,7 @@ from flask import (
     request,
     url_for,
 )
+import requests
 from psycopg2.errors import UniqueViolation
 from pydantic_core._pydantic_core import (
     ValidationError as PydanticValidationError,
@@ -25,6 +26,8 @@ from page_analyzer.models import (
     UrlChecksModel,
     UrlsModel,
 )
+from page_analyzer.utils.helpers import get_page_seo_info
+
 
 # Загружает переменные окружения из файла .env
 load_dotenv()
@@ -89,7 +92,7 @@ def urls_post():
         ), 422
     
     except UniqueViolation:
-        url_data = urls_model.find_by_url(url)
+        url_data = urls_model.find_by_url(new_url_data.name_str)
         
         if url_data is None:
             raise ValueError("url не найден в таблице")
@@ -131,22 +134,36 @@ def urls_checks_post(id):
     if url_data is None:
         return render_template("error.html"), 422
     
-    # TODO тут нужно с помощью парсинга узнать данные страницы url_data.name
-    # и в случае успеха вывести 
-    # (MessageCategory.SUCCESS.value, Страница успешно проверена)
-    # в случае неудачи - посмотреть, когда демо сайт отвиснет
-    # Функцию парсинга наверное вынести в helpers
-    
-    url_check_data = NewUrlCheckData(
-        url_id=id,
-        status_code=200,  # TODO - статус надо узнать путем запроса
-        h1=None,
-        title=None,
-        description=None,
-    )
-    url_checks_model.save(url_check_data)    
-    
-    return redirect(url_for("urls_show", id=id))
+    try:
+        response = requests.get(url_data.name_str)
+        response.raise_for_status()
+        
+        page_seo_info = get_page_seo_info(response.text)        
+        url_check_data = NewUrlCheckData(
+            url_id=id,
+            status_code=response.status_code,
+            h1=page_seo_info.h1,
+            title=page_seo_info.title,
+            description=page_seo_info.description,
+        )
+        url_checks_model.save(url_check_data)        
+        flash("Страница успешно проверена", MessageCategory.SUCCESS.value)
+        
+        return redirect(url_for("urls_show", id=id))
+
+    except requests.exceptions.Timeout as error:
+        flash("Произошла ошибка при проверке", MessageCategory.DANGER.value)
+        
+        return redirect(url_for("urls_show", id=id))
+
+    except requests.exceptions.RequestException as error:
+        error_first_word = str(error).split()[0]
+        response_status = error_first_word if error_first_word.isdigit() else None
+        
+        return render_template(
+            "error.html",
+            response_status=response_status,
+        )
 
 
 @app.errorhandler(404)
