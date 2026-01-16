@@ -42,6 +42,9 @@ class MixedModel:
         
         try:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                # В данном запросе нужно расположить новые записи выше.
+                # Поскольку id записи в общем случае не должен соответствовать 
+                # порядку записей, то сортируем их по времени добавления.
                 cursor.execute(
                     """SELECT url_id, name, status_code, created_at FROM (
                             SELECT 
