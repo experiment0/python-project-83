@@ -111,7 +111,7 @@ def urls_post():
         return render_template(ERROR_TEMPLATE), 422
 
 
-@app.route("/urls/<int:id>")
+@app.route("/urls/<id>")
 def urls_show(id):
     url_data = urls_model.find_by_id(id)
     
@@ -130,7 +130,7 @@ def urls_show(id):
     )
 
 
-@app.post("/urls/<int:id>/checks")
+@app.post("/urls/<id>/checks")
 def urls_checks_post(id):
     url_data = urls_model.find_by_id(id)
     
