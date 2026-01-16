@@ -28,7 +28,7 @@ test:
 # тестирования "черного ящика".
 # Поэтому доп. тесты в данном приложении реализованы минимально.
 test-coverage:
-	uv run pytest --cov=page_analyzer
+	uv run pytest --cov=page_analyzer --cov-report xml
 
 
 # Прогоняет сначала тесты, потом проверку линтером
