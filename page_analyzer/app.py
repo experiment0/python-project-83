@@ -18,7 +18,7 @@ from pydantic_core._pydantic_core import (
     ValidationError as PydanticValidationError,
 )
 
-from page_analyzer.ConnectionPool import ConnectionPool
+from page_analyzer.connection_pool import ConnectionPool
 from page_analyzer.models import (
     MixedModel,
     NewUrlCheckData,

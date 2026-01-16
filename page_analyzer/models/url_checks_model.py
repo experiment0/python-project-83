@@ -9,7 +9,7 @@ from pydantic import (
     field_validator,
 )
 
-from page_analyzer.ConnectionPool import ConnectionPool
+from page_analyzer.connection_pool import ConnectionPool
 from page_analyzer.utils.helpers import crop_text
 
 

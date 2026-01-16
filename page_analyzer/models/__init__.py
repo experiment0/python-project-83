@@ -1,6 +1,9 @@
-from page_analyzer.models.MixedModel import MixedModel
-from page_analyzer.models.UrlChecksModel import NewUrlCheckData, UrlChecksModel
-from page_analyzer.models.UrlsModel import NewUrlData, UrlsModel
+from page_analyzer.models.mixed_model import MixedModel
+from page_analyzer.models.url_checks_model import (
+    NewUrlCheckData,
+    UrlChecksModel,
+)
+from page_analyzer.models.urls_model import NewUrlData, UrlsModel
 
 __all__ = [
     "UrlsModel",

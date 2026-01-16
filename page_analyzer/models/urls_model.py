@@ -12,7 +12,7 @@ from pydantic import (
 )
 from typing_extensions import Annotated
 
-from page_analyzer.ConnectionPool import ConnectionPool
+from page_analyzer.connection_pool import ConnectionPool
 from page_analyzer.utils.helpers import get_root_url
 
 # Правила, которым должен соответствовать url, добавляемый в модель

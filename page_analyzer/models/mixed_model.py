@@ -8,7 +8,7 @@ from pydantic import (
     computed_field,
 )
 
-from page_analyzer.ConnectionPool import ConnectionPool
+from page_analyzer.connection_pool import ConnectionPool
 
 
 class LastUrlCheck(BaseModel):
